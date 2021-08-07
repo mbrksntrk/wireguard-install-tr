@@ -7,7 +7,7 @@
 
 # Detect Debian users running the script with "sh" instead of bash
 if readlink /proc/$$/exe | grep -q "dash"; then
-	echo 'This installer needs to be run with "bash", not "sh".'
+	echo 'Bu yükleyicinin "sh" ile değil "bash" ile çalıştırılması gerekiyor.'
 	exit
 fi
 
@@ -16,7 +16,7 @@ read -N 999999 -t 0.001
 
 # Detect OpenVZ 6
 if [[ $(uname -r | cut -d "." -f 1) -eq 2 ]]; then
-	echo "The system is running an old kernel, which is incompatible with this installer."
+	echo "Sistem, bu yükleyiciyle uyumlu olmayan eski bir çekirdek çalıştırıyor."
 	exit
 fi
 
@@ -35,32 +35,32 @@ elif [[ -e /etc/fedora-release ]]; then
 	os="fedora"
 	os_version=$(grep -oE '[0-9]+' /etc/fedora-release | head -1)
 else
-	echo "This installer seems to be running on an unsupported distribution.
-Supported distributions are Ubuntu, Debian, CentOS, and Fedora."
+	echo "Bu yükleyici, desteklenmeyen bir dağıtımda çalışıyor gibi görünüyor.
+Desteklenen dağıtımlar Ubuntu, Debian, CentOS ve Fedora'dır."
 	exit
 fi
 
 if [[ "$os" == "ubuntu" && "$os_version" -lt 1804 ]]; then
-	echo "Ubuntu 18.04 or higher is required to use this installer.
-This version of Ubuntu is too old and unsupported."
+	echo "Bu yükleyiciyi kullanmak için Ubuntu 18.04 veya üstü gereklidir.
+Ubuntu'nun bu sürümü çok eski ve desteklenmiyor."
 	exit
 fi
 
 if [[ "$os" == "debian" && "$os_version" -lt 10 ]]; then
-	echo "Debian 10 or higher is required to use this installer.
-This version of Debian is too old and unsupported."
+	echo "Bu yükleyiciyi kullanmak için Debian 10 veya üstü gereklidir.
+Debian'ın bu sürümü çok eski ve desteklenmiyor."
 	exit
 fi
 
 if [[ "$os" == "centos" && "$os_version" -lt 7 ]]; then
-	echo "CentOS 7 or higher is required to use this installer.
-This version of CentOS is too old and unsupported."
+	echo "Bu yükleyiciyi kullanmak için CentOS 7 veya üstü gereklidir.
+CentOS'un bu sürümü çok eski ve desteklenmiyor."
 	exit
 fi
 
 # Detect environments where $PATH does not include the sbin directories
 if ! grep -q sbin <<< "$PATH"; then
-	echo '$PATH does not include sbin. Try using "su -" instead of "su".'
+	echo '$PATH, sbin içermiyor. "su" yerine "su -" kullanmayı deneyin.'
 	exit
 fi
 
@@ -68,42 +68,42 @@ systemd-detect-virt -cq
 is_container="$?"
 
 if [[ "$os" == "fedora" && "$os_version" -eq 31 && $(uname -r | cut -d "." -f 2) -lt 6 && ! "$is_container" -eq 0 ]]; then
-	echo 'Fedora 31 is supported, but the kernel is outdated.
-Upgrade the kernel using "dnf upgrade kernel" and restart.'
+	echo 'Fedora 31 destekleniyor, ancak çekirdek güncel değil.
+"dnf upgrade kernel" komutunu kullanarak çekirdeği yükseltin ve yeniden başlatın.'
 	exit
 fi
 
 if [[ "$EUID" -ne 0 ]]; then
-	echo "This installer needs to be run with superuser privileges."
+	echo "Bu yükleyicinin süper kullanıcı ayrıcalıklarıyla çalıştırılması gerekiyor."
 	exit
 fi
 
 if [[ "$is_container" -eq 0 ]]; then
 	if [ "$(uname -m)" != "x86_64" ]; then
-		echo "In containerized systems, this installer supports only the x86_64 architecture.
-The system runs on $(uname -m) and is unsupported."
+		echo "Kapsayıcılı sistemlerde bu yükleyici yalnızca x86_64 mimarisini destekler.
+Sistem desteklenmeyen $(uname -m) üzerinde çalışıyor."
 		exit
 	fi
 	# TUN device is required to use BoringTun if running inside a container
 	if [[ ! -e /dev/net/tun ]] || ! ( exec 7<>/dev/net/tun ) 2>/dev/null; then
-		echo "The system does not have the TUN device available.
-TUN needs to be enabled before running this installer."
+		echo "Sistemde TUN cihazı mevcut değil.
+Bu yükleyiciyi çalıştırmadan önce TUN'un etkinleştirilmesi gerekir."
 		exit
 	fi
 fi
 
 new_client_dns () {
-	echo "Select a DNS server for the client:"
-	echo "   1) Current system resolvers"
+	echo "İstemci için bir DNS sunucusu seçin:"
+	echo "   1) Mevcut sistem DNS'i"
 	echo "   2) Google"
 	echo "   3) 1.1.1.1"
 	echo "   4) OpenDNS"
 	echo "   5) Quad9"
 	echo "   6) AdGuard"
-	read -p "DNS server [1]: " dns
+	read -p "DNS sunucusu [1]: " dns
 	until [[ -z "$dns" || "$dns" =~ ^[1-6]$ ]]; do
-		echo "$dns: invalid selection."
-		read -p "DNS server [1]: " dns
+		echo "$dns: geçersiz seçim."
+		read -p "DNS sunucusu [1]: " dns
 	done
 		# DNS
 	case "$dns" in
@@ -145,7 +145,7 @@ new_client_setup () {
 	done
 	# Don't break the WireGuard configuration in case the address space is full
 	if [[ "$octet" -eq 255 ]]; then
-		echo "253 clients are already configured. The WireGuard internal subnet is full!"
+		echo "253 istemci zaten yapılandırılmış. WireGuard dahili alt ağı dolu!"
 		exit
 	fi
 	key=$(wg genkey)
@@ -177,19 +177,19 @@ EOF
 
 if [[ ! -e /etc/wireguard/wg0.conf ]]; then
 	clear
-	echo 'Welcome to this WireGuard road warrior installer!'
+	echo 'Bu WireGuard yükleyicisine hoş geldiniz!'
 	# If system has a single IPv4, it is selected automatically. Else, ask the user
 	if [[ $(ip -4 addr | grep inet | grep -vEc '127(\.[0-9]{1,3}){3}') -eq 1 ]]; then
 		ip=$(ip -4 addr | grep inet | grep -vE '127(\.[0-9]{1,3}){3}' | cut -d '/' -f 1 | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}')
 	else
 		number_of_ip=$(ip -4 addr | grep inet | grep -vEc '127(\.[0-9]{1,3}){3}')
 		echo
-		echo "Which IPv4 address should be used?"
+		echo "Hangi IPv4 adresi kullanılmalıdır??"
 		ip -4 addr | grep inet | grep -vE '127(\.[0-9]{1,3}){3}' | cut -d '/' -f 1 | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | nl -s ') '
-		read -p "IPv4 address [1]: " ip_number
+		read -p "IPv4 adresi [1]: " ip_number
 		until [[ -z "$ip_number" || "$ip_number" =~ ^[0-9]+$ && "$ip_number" -le "$number_of_ip" ]]; do
-			echo "$ip_number: invalid selection."
-			read -p "IPv4 address [1]: " ip_number
+			echo "$ip_number: geçersiz seçim."
+			read -p "IPv4 adresi [1]: " ip_number
 		done
 		[[ -z "$ip_number" ]] && ip_number="1"
 		ip=$(ip -4 addr | grep inet | grep -vE '127(\.[0-9]{1,3}){3}' | cut -d '/' -f 1 | grep -oE '[0-9]{1,3}(\.[0-9]{1,3}){3}' | sed -n "$ip_number"p)
@@ -197,14 +197,14 @@ if [[ ! -e /etc/wireguard/wg0.conf ]]; then
 	# If $ip is a private IP address, the server must be behind NAT
 	if echo "$ip" | grep -qE '^(10\.|172\.1[6789]\.|172\.2[0-9]\.|172\.3[01]\.|192\.168)'; then
 		echo
-		echo "This server is behind NAT. What is the public IPv4 address or hostname?"
+		echo "Bu sunucu NAT'ın arkasındadır. Genel IPv4 adresi veya ana bilgisayar adı nedir?"
 		# Get public IP and sanitize with grep
 		get_public_ip=$(grep -m 1 -oE '^[0-9]{1,3}(\.[0-9]{1,3}){3}$' <<< "$(wget -T 10 -t 1 -4qO- "http://ip1.dynupdate.no-ip.com/" || curl -m 10 -4Ls "http://ip1.dynupdate.no-ip.com/")")
-		read -p "Public IPv4 address / hostname [$get_public_ip]: " public_ip
+		read -p "İnternete açık IPv4 adresi / hostname [$get_public_ip]: " public_ip
 		# If the checkip service is unavailable and user didn't provide input, ask again
 		until [[ -n "$get_public_ip" || -n "$public_ip" ]]; do
-			echo "Invalid input."
-			read -p "Public IPv4 address / hostname: " public_ip
+			echo "geçersiz seçim."
+			read -p "İnternete açık IPv4 adresi / hostname: " public_ip
 		done
 		[[ -z "$public_ip" ]] && public_ip="$get_public_ip"
 	fi
@@ -216,27 +216,27 @@ if [[ ! -e /etc/wireguard/wg0.conf ]]; then
 	if [[ $(ip -6 addr | grep -c 'inet6 [23]') -gt 1 ]]; then
 		number_of_ip6=$(ip -6 addr | grep -c 'inet6 [23]')
 		echo
-		echo "Which IPv6 address should be used?"
+		echo "Hangi IPv6 adresi kullanılmalıdır?"
 		ip -6 addr | grep 'inet6 [23]' | cut -d '/' -f 1 | grep -oE '([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}' | nl -s ') '
-		read -p "IPv6 address [1]: " ip6_number
+		read -p "IPv6 adresi [1]: " ip6_number
 		until [[ -z "$ip6_number" || "$ip6_number" =~ ^[0-9]+$ && "$ip6_number" -le "$number_of_ip6" ]]; do
-			echo "$ip6_number: invalid selection."
-			read -p "IPv6 address [1]: " ip6_number
+			echo "$ip6_number: geçersiz seçim."
+			read -p "IPv6 adresi [1]: " ip6_number
 		done
 		[[ -z "$ip6_number" ]] && ip6_number="1"
 		ip6=$(ip -6 addr | grep 'inet6 [23]' | cut -d '/' -f 1 | grep -oE '([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}' | sed -n "$ip6_number"p)
 	fi
 	echo
-	echo "What port should WireGuard listen to?"
+	echo "WireGuard hangi portu dinlemeli?"
 	read -p "Port [51820]: " port
 	until [[ -z "$port" || "$port" =~ ^[0-9]+$ && "$port" -le 65535 ]]; do
-		echo "$port: invalid port."
+		echo "$port: geçersiz port."
 		read -p "Port [51820]: " port
 	done
 	[[ -z "$port" ]] && port="51820"
 	echo
-	echo "Enter a name for the first client:"
-	read -p "Name [client]: " unsanitized_client
+	echo "İlk client için bir ad girin:"
+	read -p "Adı [client]: " unsanitized_client
 	# Allow a limited set of characters to avoid conflicts
 	client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
 	[[ -z "$client" ]] && client="client"
@@ -245,11 +245,11 @@ if [[ ! -e /etc/wireguard/wg0.conf ]]; then
 	# Set up automatic updates for BoringTun if the user is fine with that
 	if [[ "$is_container" -eq 0 ]]; then
 		echo
-		echo "BoringTun will be installed to set up WireGuard in the system."
-		read -p "Should automatic updates be enabled for it? [Y/n]: " boringtun_updates
+		echo "Sistemde WireGuard'ı kurmak için BoringTun kurulacaktır."
+		read -p "Bunun için otomatik güncellemeler etkinleştirilmeli mi? [Y/n]: " boringtun_updates
 		until [[ "$boringtun_updates" =~ ^[yYnN]*$ ]]; do
-			echo "$remove: invalid selection."
-			read -p "Should automatic updates be enabled for it? [Y/n]: " boringtun_updates
+			echo "$remove: geçersiz seçim."
+			read -p "Bunun için otomatik güncellemeler etkinleştirilmeli mi? [Y/n]: " boringtun_updates
 		done
 		if [[ "$boringtun_updates" =~ ^[yY]*$ ]]; then
 			if [[ "$os" == "centos" || "$os" == "fedora" ]]; then
@@ -260,7 +260,7 @@ if [[ ! -e /etc/wireguard/wg0.conf ]]; then
 		fi
 	fi
 	echo
-	echo "WireGuard installation is ready to begin."
+	echo "WireGuard kurulumu başlamaya hazır."
 	# Install a firewall in the rare case where one is not already available
 	if ! systemctl is-active --quiet firewalld.service && ! hash iptables 2>/dev/null; then
 		if [[ "$os" == "centos" || "$os" == "fedora" ]]; then
@@ -273,7 +273,7 @@ if [[ ! -e /etc/wireguard/wg0.conf ]]; then
 			firewall="iptables"
 		fi
 	fi
-	read -n1 -r -p "Press any key to continue..."
+	read -n1 -r -p "Devam etmek için herhangi bir tuşa basın..."
 	# Install WireGuard
 	# If not running inside a container, set up the WireGuard kernel module
 	if [[ ! "$is_container" -eq 0 ]]; then
@@ -448,7 +448,7 @@ WantedBy=multi-user.target" >> /etc/systemd/system/wg-iptables.service
 latest=$(wget -qO- https://wg.nyr.be/1/latest 2>/dev/null || curl -sL https://wg.nyr.be/1/latest 2>/dev/null)
 # If server did not provide an appropriate response, exit
 if ! head -1 <<< "$latest" | grep -qiE "^boringtun.+[0-9]+\.[0-9]+.*$"; then
-	echo "Update server unavailable"
+	echo "Güncelleme sunucusu kullanılamıyor"
 	exit
 fi
 current=$(boringtun -V)
@@ -461,13 +461,13 @@ if [[ "$current" != "$latest" ]]; then
 		rm -f /usr/local/sbin/boringtun
 		mv "$xdir"/boringtun /usr/local/sbin/boringtun
 		systemctl start wg-quick@wg0.service
-		echo "Succesfully updated to $(boringtun -V)"
+		echo "Başarıyla güncellendi $(boringtun -V)"
 	else
-		echo "boringtun update failed"
+		echo "boringtun güncellemesi başarısız "
 	fi
 	rm -rf "$xdir"
 else
-	echo "$current is up to date"
+	echo "$current güncel"
 fi
 EOF
 		chmod +x /usr/local/sbin/boringtun-upgrade
@@ -481,45 +481,45 @@ EOF
 	# If the kernel module didn't load, system probably had an outdated kernel
 	# We'll try to help, but will not will not force a kernel upgrade upon the user
 	if [[ ! "$is_container" -eq 0 ]] && ! modprobe -nq wireguard; then
-		echo "Warning!"
-		echo "Installation was finished, but the WireGuard kernel module could not load."
+		echo "Uyarı!"
+		echo "Kurulum tamamlandı, ancak WireGuard çekirdek modülü yüklenemedi."
 		if [[ "$os" == "ubuntu" && "$os_version" -eq 1804 ]]; then
-		echo 'Upgrade the kernel and headers with "apt-get install linux-generic" and restart.'
+		echo 'Çekirdeği ve başlıkları "apt-get install linux-generic" ile yükseltin ve yeniden başlatın.'
 		elif [[ "$os" == "debian" && "$os_version" -eq 10 ]]; then
-		echo "Upgrade the kernel with \"apt-get install linux-image-$architecture\" and restart."
+		echo "Çekirdeği \"apt-get install linux-image-$architecture\" ile yükseltin ve yeniden başlatın."
 		elif [[ "$os" == "centos" && "$os_version" -le 8 ]]; then
-			echo "Reboot the system to load the most recent kernel."
+			echo "En son çekirdeği yüklemek için sistemi yeniden başlatın."
 		fi
 	else
-		echo "Finished!"
+		echo "Hazır!"
 	fi
 	echo
-	echo "The client configuration is available in:" ~/"$client.conf"
-	echo "New clients can be added by running this script again."
+	echo "İstemci yapılandırması şurada mevcuttur:" ~/"$client.conf"
+	echo "Bu betiği tekrar çalıştırarak yeni istemciler eklenebilir."
 else
 	clear
-	echo "WireGuard is already installed."
+	echo "WireGuard zaten kurulu."
 	echo
-	echo "Select an option:"
-	echo "   1) Add a new client"
-	echo "   2) Remove an existing client"
-	echo "   3) Remove WireGuard"
-	echo "   4) Exit"
-	read -p "Option: " option
+	echo "Bir seçenek seçin:"
+	echo "   1) Yeni bir istemci ekle"
+	echo "   2) Mevcut bir istemciyi kaldırın"
+	echo "   3) WireGuard'ı sistemden Kaldırın"
+	echo "   4) Çıkış"
+	read -p "seçenek: " option
 	until [[ "$option" =~ ^[1-4]$ ]]; do
-		echo "$option: invalid selection."
-		read -p "Option: " option
+		echo "$option: geçersiz seçim."
+		read -p "seçenek: " option
 	done
 	case "$option" in
 		1)
 			echo
-			echo "Provide a name for the client:"
-			read -p "Name: " unsanitized_client
+			echo "İstemci için bir isim verin:"
+			read -p "Adı: " unsanitized_client
 			# Allow a limited set of characters to avoid conflicts
 			client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
 			while [[ -z "$client" ]] || grep -q "^# BEGIN_PEER $client$" /etc/wireguard/wg0.conf; do
-				echo "$client: invalid name."
-				read -p "Name: " unsanitized_client
+				echo "$client: geçersiz isim."
+				read -p "Adı: " unsanitized_client
 				client=$(sed 's/[^0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-]/_/g' <<< "$unsanitized_client")
 			done
 			echo
@@ -529,9 +529,9 @@ else
 			wg addconf wg0 <(sed -n "/^# BEGIN_PEER $client/,/^# END_PEER $client/p" /etc/wireguard/wg0.conf)
 			echo
 			qrencode -t UTF8 < ~/"$client.conf"
-			echo -e '\xE2\x86\x91 That is a QR code containing your client configuration.'
+			echo -e '\xE2\x86\x91 Bu, istemci yapılandırmanızı içeren bir QR kodudur.'
 			echo
-			echo "$client added. Configuration available in:" ~/"$client.conf"
+			echo "$client eklendi. Yapılandırma dosyası şurada:" ~/"$client.conf"
 			exit
 		;;
 		2)
@@ -540,23 +540,23 @@ else
 			number_of_clients=$(grep -c '^# BEGIN_PEER' /etc/wireguard/wg0.conf)
 			if [[ "$number_of_clients" = 0 ]]; then
 				echo
-				echo "There are no existing clients!"
+				echo "Hiç istemci yok!"
 				exit
 			fi
 			echo
-			echo "Select the client to remove:"
+			echo "Kaldırılacak istemciyi seçin:"
 			grep '^# BEGIN_PEER' /etc/wireguard/wg0.conf | cut -d ' ' -f 3 | nl -s ') '
 			read -p "Client: " client_number
 			until [[ "$client_number" =~ ^[0-9]+$ && "$client_number" -le "$number_of_clients" ]]; do
-				echo "$client_number: invalid selection."
-				read -p "Client: " client_number
+				echo "$client_number: geçersiz seçim."
+				read -p "İstemci: " client_number
 			done
 			client=$(grep '^# BEGIN_PEER' /etc/wireguard/wg0.conf | cut -d ' ' -f 3 | sed -n "$client_number"p)
 			echo
-			read -p "Confirm $client removal? [y/N]: " remove
+			read -p "$client gerçekten silinsin mi? [y/N]: " remove
 			until [[ "$remove" =~ ^[yYnN]*$ ]]; do
-				echo "$remove: invalid selection."
-				read -p "Confirm $client removal? [y/N]: " remove
+				echo "$remove: geçersiz seçim."
+				read -p "$client gerçekten silinsin mi? [y/N]: " remove
 			done
 			if [[ "$remove" =~ ^[yY]$ ]]; then
 				# The following is the right way to avoid disrupting other active connections:
@@ -565,19 +565,19 @@ else
 				# Remove from the configuration file
 				sed -i "/^# BEGIN_PEER $client/,/^# END_PEER $client/d" /etc/wireguard/wg0.conf
 				echo
-				echo "$client removed!"
+				echo "$client silindi!"
 			else
 				echo
-				echo "$client removal aborted!"
+				echo "$client silinmedi!"
 			fi
 			exit
 		;;
 		3)
 			echo
-			read -p "Confirm WireGuard removal? [y/N]: " remove
+			read -p "WireGuard'ın kaldırılması onaylansın mı? [y/N]: " remove
 			until [[ "$remove" =~ ^[yYnN]*$ ]]; do
 				echo "$remove: invalid selection."
-				read -p "Confirm WireGuard removal? [y/N]: " remove
+				read -p "WireGuard'ın kaldırılması onaylansın mı? [y/N]: " remove
 			done
 			if [[ "$remove" =~ ^[yY]$ ]]; then
 				port=$(grep '^ListenPort' /etc/wireguard/wg0.conf | cut -d " " -f 3)
@@ -653,10 +653,10 @@ else
 					rm -f /usr/local/sbin/boringtun /usr/local/sbin/boringtun-upgrade
 				fi
 				echo
-				echo "WireGuard removed!"
+				echo "WireGuard silindi!"
 			else
 				echo
-				echo "WireGuard removal aborted!"
+				echo "WireGuard silinmedi!"
 			fi
 			exit
 		;;
